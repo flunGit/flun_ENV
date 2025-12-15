@@ -28,7 +28,7 @@
     "author": "flun <cn@flun.top>",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/flunGit/flun_ENV.git"
+        "url": "https://github.com/flunGit/flun_ENV"
     },
     "homepage": "https://www.npmjs.com/flunGit/flun-env#readme",
     "bugs": {
