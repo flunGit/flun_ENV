@@ -1,0 +1,42 @@
+{
+    "name": "flun-env",
+    "version": "3.0.5",
+    "description": "A simple package to read .env environment files",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "scripts": {
+        "postinstall": "node install.js 2>&1",
+        "test": "echo \"Test completed\" && exit 0"
+    },
+    "bin": {
+        "env-init": "./install.js"
+    },
+    "files": [
+        "index.js",
+        "install.js",
+        "env.js",
+        "index.d.ts",
+        "CHANGELOG.md"
+    ],
+    "keywords": [
+        "env",
+        "environment",
+        "variables",
+        "config",
+        "flun"
+    ],
+    "author": "flun <cn@flun.top>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/flunGit/flun_ENV.git"
+    },
+    "homepage": "https://www.npmjs.com/flunGit/flun-env#readme",
+    "bugs": {
+        "url": "https://github.com/flunGit/flun_ENV/issues"
+    },
+    "license": "ISC",
+    "engines": {
+        "node": ">=10.0.0"
+    },
+    "type": "commonjs"
+}
