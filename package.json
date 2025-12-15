@@ -1,6 +1,6 @@
 {
     "name": "flun-env",
-    "version": "3.0.5",
+    "version": "3.0.6",
     "description": "A simple package to read .env environment files",
     "main": "index.js",
     "types": "index.d.ts",
