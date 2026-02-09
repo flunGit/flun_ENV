@@ -1,7 +1,4 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { exampleLines } = require('./env');
+const fs = require('fs'), path = require('path'), os = require('os'), { exampleLines } = require('./env');
 
 class EnvLoader {
     constructor(options = {}) {
@@ -23,7 +20,7 @@ class EnvLoader {
     }
 
     // 解析 .env 文件内容
-    parse(content) {
+    #parse(content) {
         const lines = content.split('\n'), result = {};
         for (let line of lines) {
             line = line.trim();                          // 移除前后空白字符
@@ -51,7 +48,7 @@ class EnvLoader {
     }
 
     // 查找文件
-    findFile(defaultFileName, customPath) {
+    #findFile(defaultFileName, customPath) {
         let createPath; // 首选创建路径
 
         // 1. 如果有传入自定义路径
@@ -80,7 +77,7 @@ class EnvLoader {
     }
 
     // 创建示例文件
-    createExampleFile(filePath, exampleContent) {
+    #createExampleFile(filePath, exampleContent) {
         try {
             const dir = path.dirname(filePath);
             if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); // 确保目录存在
@@ -96,17 +93,17 @@ class EnvLoader {
     load() {
         if (this.loaded) return this.variables;
 
-        const result = this.findFile('.env', this.options.path);
+        const result = this.#findFile('.env', this.options.path);
         if (!result.found) {
             console.log('未找到 .env 文件!💡 正在为您创建...');
-            this.createExampleFile(result.createPath, exampleLines.join('\n')); // 创建示例文件
+            this.#createExampleFile(result.createPath, exampleLines.join('\n')); // 创建示例文件
             return this.variables;
         }
 
         try {
             // 读取并解析文件
             const content = fs.readFileSync(result.path, this.options.encoding);
-            this.variables = this.parse(content), this.loaded = true;
+            this.variables = this.#parse(content), this.loaded = true;
 
             if (this.options.debug) console.log(`✓ 加载了 ${Object.keys(this.variables).length} 个变量`);
             for (const [key, value] of Object.entries(this.variables)) process.env[key] = value; // 将变量设置到 process.env

@@ -1,9 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const { exampleLines } = require('./env');
+const fs = require('fs'), path = require('path'), { exampleLines } = require('./env'),
 
-// 检查项目根目录
-const packageDir = __dirname, projectRoot = path.resolve(packageDir, '../..'), // 向上两级到项目根目录
+    // 检查项目根目录
+    packageDir = __dirname, projectRoot = path.resolve(packageDir, '../..'), // 向上两级到项目根目录
     projectEnvPath = path.join(projectRoot, '.env');
 // 检查并创建示例文件
 function checkAndCreateEnvFile() {
