@@ -9,7 +9,7 @@
         "test": "echo \"Test completed\" && exit 0"
     },
     "bin": {
-        "env-init": "./install.js"
+        "env-init": "install.js"
     },
     "files": [
         "index.js",
@@ -28,7 +28,7 @@
     "author": "flun <cn@flun.top>",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/flunGit/flun_ENV"
+        "url": "git+https://github.com/flunGit/flun_ENV.git"
     },
     "homepage": "https://www.npmjs.com/flunGit/flun-env#readme",
     "bugs": {
