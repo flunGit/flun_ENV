@@ -7,9 +7,9 @@ class EnvLoader {
         // 返回代理实例以实现 env.变量名 的访问方式
         return new Proxy(this, {
             get: (target, prop) => {
-                if (prop in target) return target[prop];
                 const variables = target.getAll();
                 if (prop in variables) return variables[prop];
+                if (prop in target) return target[prop];
                 return undefined;
             },
             set(target, prop, value) {
@@ -19,60 +19,99 @@ class EnvLoader {
         });
     }
 
+    // 转义字符处理
+    #unescape(str) {
+        return str.replace(/\\(.)/g, (_, char) => {
+            if (char === 'n') return '\n';
+            if (char === 't') return '\t';
+            if (char === 'r') return '\r';
+            return char;
+        });
+    }
+
     // 解析 .env 文件内容
     #parse(content) {
         const lines = content.split('\n'), result = {};
         for (let line of lines) {
-            line = line.trim();                          // 移除前后空白字符
-            if (!line || line.startsWith('#')) continue; // 跳过空行和注释
+            line = line.trim();
+            if (!line || line.startsWith('#')) continue;
 
-            // 解析键值对
             const equalsIndex = line.indexOf('=');
-            if (equalsIndex === -1) continue;             // 跳过无效行
+            if (equalsIndex === -1) continue;
 
             const key = line.slice(0, equalsIndex).trim();
-            let value = line.slice(equalsIndex + 1).trim();
+            let valuePart = line.slice(equalsIndex + 1).trimStart();
 
-            // 移除值两端的引号（如果存在）
-            const firstChar = value[0];
-            if (firstChar === value.at(-1) && (firstChar === '"' || firstChar === "'"))
-                value = value.slice(1, -1);
-
-            if (key) {
-                result[key] = value;
-                if (this.options.debug) console.log(`✓ 加载变量: ${key} = ${value}`);
+            if (valuePart === '') {
+                result[key] = '';
+                if (this.options.debug) console.log(`✓ 加载变量: ${key} = (空)`);
+                continue;
             }
-        }
 
+            const firstChar = valuePart[0];
+            if (firstChar === '"' || firstChar === "'") {
+                let endQuoteIndex = -1, inEscape = false;
+                for (let i = 1; i < valuePart.length; i++) {
+                    if (!inEscape && valuePart[i] === firstChar) {
+                        endQuoteIndex = i;
+                        break;
+                    }
+                    inEscape = valuePart[i] === '\\' && !inEscape;
+                }
+                if (endQuoteIndex !== -1) {
+                    const quotedValue = valuePart.slice(1, endQuoteIndex), rest = valuePart.slice(endQuoteIndex + 1).trimStart();
+                    if (rest && rest[0] === '#'); // 注释,忽略
+                    else if (rest && this.options.debug) console.warn(`⚠️ 忽略值后的多余内容: ${rest}`);
+
+                    result[key] = this.#unescape(quotedValue);
+                }
+                else result[key] = valuePart; // 未闭合引号，按原样处理
+            } else {
+                let value, rest;
+                const commentIndex = valuePart.indexOf('#');
+                if (commentIndex !== -1)
+                    value = valuePart.slice(0, commentIndex).trimEnd(), rest = valuePart.slice(commentIndex).trimStart();
+                else {
+                    const firstWhitespace = valuePart.search(/\s/);
+                    if (firstWhitespace === -1) value = valuePart, rest = '';
+                    else value = valuePart.slice(0, firstWhitespace), rest = valuePart.slice(firstWhitespace).trimStart();
+                }
+
+                if (rest && rest[0] === '#'); // 注释,忽略
+                else if (rest && this.options.debug) console.warn(`⚠️ 忽略值后的多余内容: ${rest}`);
+
+                result[key] = value;
+            }
+
+            if (this.options.debug) console.log(`✓ 加载变量: ${key} = ${result[key]}`);
+        }
         return result;
     }
 
     // 查找文件
-    #findFile(defaultFileName, customPath) {
-        let createPath; // 首选创建路径
+    #findFile(customPath) {
+        let createPath;
 
-        // 1. 如果有传入自定义路径
         if (customPath && customPath !== '.env') {
             createPath = path.isAbsolute(customPath) ? customPath : path.resolve(process.cwd(), customPath);
-
-            // 检查自定义路径的文件是否存在
             try {
-                if (fs.statSync(createPath).isFile()) return { found: true, path: createPath, createPath };
-            } catch (error) { }
-            return { found: false, path: null, createPath }; // 自定义路径的文件不存在，返回创建路径为自定义路径
+                const stat = fs.statSync(createPath);
+                if (stat.isFile()) return { found: true, path: createPath, createPath };
+                throw new Error(`指定路径存在但不是文件: ${createPath}`);
+            } catch (error) {
+                if (error.code === 'ENOENT') return { found: false, path: null, createPath };
+                throw error;
+            }
         }
 
-        // 2. 没有自定义路径，检查默认路径(当前工作目录和系统用户主目录)
-        const possiblePaths = [path.join(process.cwd(), defaultFileName), path.join(os.homedir(), defaultFileName)];
-
-        // 检查每个路径是否存在
-        for (const filePath of possiblePaths)
+        const fileName = '.env', possiblePaths = [path.join(process.cwd(), fileName), path.join(os.homedir(), fileName)];
+        for (const filePath of possiblePaths) {
             try {
                 if (fs.statSync(filePath).isFile()) return { found: true, path: filePath, createPath: filePath };
             } catch (error) { }
+        }
 
-        // 3. 所有路径都不存在，返回创建路径为当前工作目录
-        createPath = path.join(process.cwd(), defaultFileName);
+        createPath = path.join(process.cwd(), fileName);
         return { found: false, path: null, createPath };
     }
 
@@ -80,12 +119,13 @@ class EnvLoader {
     #createExampleFile(filePath, exampleContent) {
         try {
             const dir = path.dirname(filePath);
-            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); // 确保目录存在
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
             fs.writeFileSync(filePath, exampleContent, 'utf8');
             console.log(`✓ 已创建示例文件:${filePath};请编辑环境变量后重新运行程序`), process.exit(1);
         } catch (error) {
             console.error('✗ 创建示例文件失败:', error.message);
+            process.exit(1);
         }
     }
 
@@ -93,20 +133,26 @@ class EnvLoader {
     load() {
         if (this.loaded) return this.variables;
 
-        const result = this.#findFile('.env', this.options.path);
+        let result;
+        try {
+            result = this.#findFile(this.options.path);
+        } catch (error) {
+            console.error('❌ 环境变量文件路径无效:', error.message);
+            process.exit(1);
+        }
+
         if (!result.found) {
             console.log('未找到 .env 文件!💡 正在为您创建...');
-            this.#createExampleFile(result.createPath, exampleLines.join('\n')); // 创建示例文件
+            this.#createExampleFile(result.createPath, exampleLines.join('\n'));
             return this.variables;
         }
 
         try {
-            // 读取并解析文件
             const content = fs.readFileSync(result.path, this.options.encoding);
             this.variables = this.#parse(content), this.loaded = true;
 
-            if (this.options.debug) console.log(`✓ 加载了 ${Object.keys(this.variables).length} 个变量`);
-            for (const [key, value] of Object.entries(this.variables)) process.env[key] = value; // 将变量设置到 process.env
+            if (this.options.debug) console.log(`✓ 已加载 ${Object.keys(this.variables).length} 个环境变量`);
+            for (const [key, value] of Object.entries(this.variables)) process.env[key] = value;
         } catch (error) {
             console.error('❌ 读取 .env 文件失败:', error.message), process.exit(1);
         }
@@ -129,25 +175,13 @@ class EnvLoader {
     }
 }
 
-// 延迟创建默认实例
-let defaultEnv = null;
-
-// 获取默认实例的函数
-function getDefaultEnv() {
-    if (!defaultEnv) defaultEnv = new EnvLoader({ path: '.env', encoding: 'utf8', debug: false });
-    return defaultEnv;
-}
-
+let defaultEnv = null; // 延迟创建默认实例
 // 导出对象
 module.exports = {
-    // 默认的环境变量实例，通过 getter 延迟创建
     get env() {
-        return getDefaultEnv();
+        return defaultEnv || (defaultEnv = new EnvLoader({ path: '.env', encoding: 'utf8', debug: false }));
     },
-
-    // 配置加载器函数
     config: (options = {}) => {
-        // 如果传入的是字符串，则视为路径
         if (typeof options === 'string') options = { path: options };
         const { path = '.env', encoding = 'utf8', debug = false } = options;
         return new EnvLoader({ path, encoding, debug });
