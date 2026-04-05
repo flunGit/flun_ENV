@@ -2,7 +2,7 @@
 
 ## 安装
 
-```bash
+```sh
 npm i flun-env
 ```
 
