@@ -3,14 +3,11 @@
     "version": "3.0.11",
     "description": "A simple package to read .env environment files",
     "type": "module",
-    "main": "index.js",
     "types": "index.d.ts",
     "exports": {
-        ".": {
-            "import": "./index.js",
-            "types": "./index.d.ts"
-        }
+        ".": "./index.js"
     },
+    "main": "index.js",
     "bin": {
         "env-init": "install.js"
     },
