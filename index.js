@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
+import { homedir } from 'os';
 import { exampleLines } from './env.js';
 
 class EnvLoader {
@@ -107,7 +107,7 @@ class EnvLoader {
             }
         }
 
-        const fileName = '.env', possiblePaths = [path.join(process.cwd(), fileName), path.join(os.homedir(), fileName)];
+        const fileName = '.env', possiblePaths = [path.join(process.cwd(), fileName), path.join(homedir(), fileName)];
         for (const filePath of possiblePaths) {
             try {
                 if (fs.statSync(filePath).isFile()) return { found: true, path: filePath, createPath: filePath };
@@ -189,5 +189,5 @@ function config(options = {}) {
     const { path = '.env', encoding = 'utf8', debug = false } = options;
     return new EnvLoader({ path, encoding, debug });
 }
-// 导出对象
+
 export { env, config };

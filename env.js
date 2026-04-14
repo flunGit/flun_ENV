@@ -18,7 +18,7 @@ const exampleLines = [
     '# 字符串值不需要引号',
     'MAIL_PWD = 123ABC',
     '',
-    `# 调用包: const {env} = require('flun-env');`,
+    `# 调用包: import { env } from 'flun-env' ;`,
     '',
     '# 使用格式: env.变量名'
 ];

@@ -5,9 +5,8 @@ import { exampleLines } from './env.js';
 
 // 获取当前文件所在目录（相当于 __dirname）
 const __filename = fileURLToPath(import.meta.url), __dirname = path.dirname(__filename),
-    // 检查项目根目录
-    packageDir = __dirname, projectRoot = path.resolve(packageDir, '../..'), // 向上两级到项目根目录
-    projectEnvPath = path.join(projectRoot, '.env');
+    // 检查项目根目录(向上两级)
+    projectRoot = path.resolve(__dirname, '../..'), projectEnvPath = path.join(projectRoot, '.env');
 // 检查并创建示例文件
 function checkAndCreateEnvFile() {
     console.log('🔍 检查 .env 环境变量文件...'), console.log(`📁 项目根目录: ${projectRoot}`);
@@ -25,5 +24,5 @@ function checkAndCreateEnvFile() {
 }
 
 // 执行脚本并导出函数
-if (process.argv[1] === fileURLToPath(import.meta.url)) checkAndCreateEnvFile();
+if (process.argv[1] === __filename) checkAndCreateEnvFile();
 export { checkAndCreateEnvFile };

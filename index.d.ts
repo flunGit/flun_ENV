@@ -15,7 +15,7 @@
  *  console.log(env.PORT); // 访问配置项
  * // ---------------------------------------------------------
  *  // 自定义配置示例
- *  import {  config } from 'flun-env';
+ *  import { config } from 'flun-env';
  *    const cEnv = config({
  *      path: './path/.env',  // 自定义路径(如果配置是相对路径,那么请以工作路径作为基准->向上或向下或同级)
  *      encoding: 'utf8',     // 字符集 (默认utf8)
