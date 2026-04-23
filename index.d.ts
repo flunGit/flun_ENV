@@ -17,7 +17,7 @@ declare module './env.js' {
 /**
  * ```js
  * // 文件导出内容
- * checkAndCreateEnvFile(); // 预设的 .env 示例文件内容(行数组),供模块生成;
+ * checkAndCreateEnvFile(); // 检查并创建 .env 示例文件
  * ```
  * >查看定义:@see {@link checkAndCreateEnvFile}
  */
