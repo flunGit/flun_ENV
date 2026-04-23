@@ -52,7 +52,7 @@ NODE_ENV=development
 
 ### 默认配置(示例)
 
-```javascript
+```js
 import { env } from 'flun-env';
 
 // 直接使用变量
@@ -63,9 +63,7 @@ console.log('API密钥:', env.API_KEY);
 
 // 或者使用方法
 console.log(env.get('DATABASE_URL'));
-if (env.has('SECRET_KEY')) {
-  console.log('密钥存在');
-}
+if (env.has('SECRET_KEY')) console.log('密钥存在');
 
 // 获取所有变量
 const allVars = env.getAll();
@@ -74,17 +72,18 @@ console.log('所有变量:', allVars);
 
 ### 自定义配置(示例):
 
-```javascript
+```js
 import { config } from 'flun-env';
-const env = config({
-    path: './path/.env',  // 自定义路径 (自定义路径如果是相对路径,那么请以工作路径作为基准设置->向上或向下或同级)
-    encoding: 'utf8',     // 字符集 (默认utf8)
-    debug: true           // 调试模式 (默认false)
+const cEnv = config({
+    path: './path/.env', // 自定义路径 (自定义路径如果是相对路径,那么请以工作路径作为基准设置->向上或向下或同级)
+    encoding: 'utf8',    // 字符集 (默认utf8)
+    debug: true          // 调试模式 (默认false)
 });
 
-console.log(env.PORT); // 访问配置项
-// 其它使用方式同默认配置(示例)...
+console.log(cEnv.PORT);  // 访问配置项
 ```
+### 其它使用方式同默认配置(示例)...
+---
 
 ## 错误处理
 如果未找到 .env 文件，包会自动创建示例文件并退出进程。

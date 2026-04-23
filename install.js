@@ -7,8 +7,10 @@ import { exampleLines } from './env.js';
 const __filename = fileURLToPath(import.meta.url), __dirname = path.dirname(__filename),
     // 检查项目根目录(向上两级)
     projectRoot = path.resolve(__dirname, '../..'), projectEnvPath = path.join(projectRoot, '.env');
-// 检查并创建示例文件
-function checkAndCreateEnvFile() {
+/**
+ * 检查并创建示例文件
+ */
+const checkAndCreateEnvFile = () => {
     console.log('🔍 检查 .env 环境变量文件...'), console.log(`📁 项目根目录: ${projectRoot}`);
     try {
         if (fs.existsSync(projectEnvPath)) return true;  // 检查项目根目录
